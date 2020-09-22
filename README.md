@@ -1,1 +1,2 @@
-# neuro-trader
+# trading
+
