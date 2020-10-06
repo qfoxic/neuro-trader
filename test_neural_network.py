@@ -88,6 +88,7 @@ clf = MLPClassifier(solver='lbfgs', alpha=1e-5, shuffle=True, max_iter=3000,
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 clf.fit(X, y)
+
 predictions = clf.predict(X_train)
 print(confusion_matrix(y_train,predictions))
 print(classification_report(y_train,predictions))
