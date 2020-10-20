@@ -87,12 +87,12 @@ clf = MLPClassifier(solver='lbfgs', alpha=1e-5, shuffle=True, max_iter=3000,
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
-clf.fit(X, y)
+clf.fit(X_train, y_train)
 
 
-predictions = clf.predict(X_train)
-print(confusion_matrix(y_train,predictions))
-print(classification_report(y_train,predictions))
+predictions = clf.predict(X_test)
+print(confusion_matrix(y_test,predictions))
+print(classification_report(y_test,predictions))
 
 
 # 1. Write a function to calc moving averages. DONE
