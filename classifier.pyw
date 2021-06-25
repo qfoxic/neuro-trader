@@ -11,9 +11,9 @@ from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 
-from lib.currency_strategies import moving_average
+from lib.currency.indicators import moving_average
 from lib.config import ConfigReader
-from lib.constants import CONFIG_FILENAME
+from lib.constants import CONFIG_FILENAME, EVALUATION_RANGE
 from lib.mt5client import Mt5Client
 
 
@@ -30,7 +30,8 @@ class MplCanvas(FigureCanvasQTAgg):
         FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
-    def compute_window_indices(self, start):
+    @staticmethod
+    def compute_window_indices(start):
         return start, start + EVALUATION_RANGE
 
     def compute_initial_figure(self, start, step=450):
@@ -65,9 +66,12 @@ class MplCanvas(FigureCanvasQTAgg):
             self.total, 20, self.total.data[end].time, self.total.data[start].time), start=start))
         plot_50_ma = list(enumerate(moving_average(
             self.total, 50, self.total.data[end].time, self.total.data[start].time), start=start))
-
+        plot_120_ma = list(enumerate(moving_average(
+            self.total, 120, self.total.data[end].time, self.total.data[start].time), start=start))
         self.axes.plot([i[0] for i in plot_20_ma], [i[1] for i in plot_20_ma], '-', color='yellow')
         self.axes.plot([i[0] for i in plot_50_ma], [i[1] for i in plot_50_ma], '-', color='blue')
+        self.axes.plot([i[0] for i in plot_120_ma], [i[1] for i in plot_120_ma], '-', color='red')
+
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
@@ -85,7 +89,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             'sell_6': 0,
             'sell_7': 0
         }
-        self.start_pos = 200
+        self.start_pos = START_POS
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self.setWindowTitle('Classifier')
         self.centralwidget = QtWidgets.QWidget(self)
@@ -131,6 +135,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.horizontalLayout.addWidget(self.button_5)
         self.button_6 = QtWidgets.QPushButton(self.centralwidget)
         self.button_6.setText('Sell 6 (0)')
+        #TODO. Make buy_* and sell_* constants
         self.button_6.setObjectName('sell_6')
         self.button_6.clicked.connect(self.onButtonClicked)
         self.horizontalLayout.addWidget(self.button_6)
@@ -153,7 +158,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         with open('classified_data.txt', 'a+') as f:
             start, end = self.sc.compute_window_indices(self.start_pos)
             data = self.sc.ochl[start:end]
-            f.write(f'##{sender.objectName()}\n')
+            f.write(f'##{sender.objectName()} {self.start_pos}\n')
             for d in data:
                 row = ','.join(map(str, d[1:]))
                 f.write(f'{row}\n')
@@ -168,14 +173,8 @@ client = Mt5Client(config)
 
 SYMBOL = 'EURUSD'
 MOVING_STEP = 2
-EVALUATION_RANGE = 26
-reply = client.data(SYMBOL)
-total = None
-
-for r in reply:
-    if r.sample_type == 'total':
-        total = r
-        break
+START_POS = 20700
+total = client.data(SYMBOL)
 
 aw = ApplicationWindow(total)
 aw.setWindowTitle('Classifier')

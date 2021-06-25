@@ -1,34 +1,48 @@
 import matplotlib.pyplot as plt
+import shutil
+import math
 
 from lib.config import ConfigReader
 from lib.constants import CONFIG_FILENAME
-from lib.currency_strategies import SupportsStrategy
 from lib.mt5client import Mt5Client
 
-config = ConfigReader(CONFIG_FILENAME).load()
-client = Mt5Client(config)
+from lib.currency.utils import data
+from lib.currency.indicators import murray_levels
+from lib.workflows import MurrayLevelsSignal, MurrayLevelBuyFlowSmaller, MurrayLevelSellFlowSmaller
 
-SYMBOL = 'TSLA'
-reply = list(client.rates(SYMBOL))[0]
+#config = ConfigReader(CONFIG_FILENAME).load()
+#client = Mt5Client(config)
+#shutil.move(client.rates_all_stored('EURUSD', 'h1'), './data_EURUSD')
 
-strategy = SupportsStrategy(reply.currency, reply.digits, reply.rates, {})
+total_samples = data('EURUSD')
 
-prices = reply.rates
-norm_rates = list(enumerate(prices))
-plt.plot(list(map(lambda x: x[0], norm_rates)), prices, 'ro-', label='price')
+samples = total_samples.data
+print(len(samples))
+prices = map(lambda x: x.close, samples)
+sell = MurrayLevelsSignal(total_samples, MurrayLevelSellFlowSmaller, 10)
+buy = MurrayLevelsSignal(total_samples, MurrayLevelBuyFlowSmaller, 3)
 
-supports = strategy.get_support_lines()
-max_price = max(supports.keys())
-min_price = min(supports.keys())
-cur_price = prices[-1]
-price_current_percentage = strategy.get_metrics()['percent_weight']
-closest_support = strategy.get_metrics()['closest_support']
+try:
+    while buy.move():
+        pass
+except StopIteration:
+    pass
 
-print(supports.keys())
-print(f'Max {max_price}.\n Min {min_price}.\n Cur {cur_price}.\n '
-      f'Percent {price_current_percentage}.\n Closest support {closest_support}')
+#print('Buy signals')
+#try:
+#    while buy.move():
+#        pass
+#except StopIteration:
+#    pass
 
-for i in supports:
-    plt.plot([0, 600], [i, i], 'ro-', label='support x', color='green')
+#mml = murray_levels(total_samples, 200)
+#plt.plot(list(prices), 'r-', label='price')
+#last_m = []
+#for ind, m in enumerate(mml):
+    #if set(last_m) != set(m):
+    #    print(ind, 'M CHANGED')
+#    for i, p in m:
+#        plt.plot([ind, ind + 1], [p, p], 'g-')
+    #    last_m = m
 
-plt.show()
+#plt.show()
