@@ -127,7 +127,7 @@ c_render = CandlesRenderer(total_samples, WINDOW)
 #ma120_render = MovingAverageRenderer(total_samples, WINDOW, 120, 'red')
 #maw_render = ThreeMAWorkflowRenderer(total_samples, WINDOW)
 murray_render = MurrayLevelsRenderer(total_samples, WINDOW)
-murray_wsrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'red', MurrayLevelSellFlowSmaller, 10)
+murray_wsrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'red', MurrayLevelSellFlowSmaller, 9)
 murray_wbrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'blue', MurrayLevelBuyFlowSmaller, 3)
 #murray_wsrender = MurrayLevelsWorkflowSellRenderer(total_samples, WINDOW)
 
@@ -135,7 +135,7 @@ aw = ApplicationWindow([
     c_render,
     #murray_render,
     # murray_wbrender,
-    murray_wbrender,
+    murray_wsrender,
     #ma20_render, ma50_render, ma120_render,
     #maw_render
 ], WINDOW)

@@ -19,11 +19,11 @@ total_samples = data('EURUSD')
 samples = total_samples.data
 print(len(samples))
 prices = map(lambda x: x.close, samples)
-sell = MurrayLevelsSignal(total_samples, MurrayLevelSellFlowSmaller, 10)
+sell = MurrayLevelsSignal(total_samples, MurrayLevelSellFlowSmaller, 9)
 buy = MurrayLevelsSignal(total_samples, MurrayLevelBuyFlowSmaller, 3)
 
 try:
-    while buy.move():
+    while sell.move():
         pass
 except StopIteration:
     pass

@@ -7,6 +7,11 @@
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
+#include <Trade\Trade.mqh>
+#include <Generic\Stack.mqh>
+
+#include "utils.mqh"
+
 class Move {
   protected:
     short            start;
@@ -32,8 +37,11 @@ class Move {
     string             name() const {
         return StringFormat("%i -> %i", start, stop);
     };
+    virtual bool             exit(const short level) const {
+        return level < min || level > max;
+        //return mlevel < min(self.levels) or mlevel > max(self.levels);
+    };
     virtual bool     enter(const short level) const = 0;
-    virtual bool     exit(const short level) const = 0;
 };
 
 
@@ -46,12 +54,8 @@ class Up: public Move {
     virtual         ~Up() {}; // TODO. When/what to delete?
 
     virtual bool     enter(const short level) const override {
-        return level > min && level <= max;
+        return min < level && level <= max;
         // return min(self.levels) < level <= max(self.levels);
-    };
-    virtual bool     exit(const short level) const override {
-        return level < min || level > max;
-        //return mlevel < min(self.levels) or mlevel > max(self.levels);
     };
 };
 
@@ -65,12 +69,9 @@ class Down: public Move {
     virtual         ~Down() {}; // TODO. When/what to delete?
 
     virtual bool     enter(const short level) const override {
-        return level < max && level >= min;
+        return max > level && level >= min;
+        
         //return max(self.levels) > mlevel >= min(self.levels)
-    };
-    virtual bool     exit(const short level) const override {
-        return level > max || level < min;
-        // return mlevel > max(self.levels) or mlevel < min(self.levels)
     };
 };
 
@@ -100,17 +101,22 @@ class MurrayLevelsStateMachine {
   private:
     Move*            root;
     Move*            state;
+    MqlRates         last_rate;
+    CStack<string>   op_stack;
+    double           cur_close_price;
     int              start;
+    int              trigger_level;
     int              bn_v1, bn_v2, OctLinesCnt, P;
     double v1, v2, v4, mn, mx, x1, x2, x3, x4, x5, x6, y1,
            y2, y3, y4, y5, y6, octave, fractal, range, finalH,
            finalL, mml[13], dmml, dvtl, sum;
   public:
-                     MurrayLevelsStateMachine(Move* node): root(node), state(node) {
+                     MurrayLevelsStateMachine(Move* node, int trigger): root(node), state(node), trigger_level(trigger) {
         start = 0;
         bn_v1 = 0;
         bn_v2 = 0;
         OctLinesCnt = 13;
+        cur_close_price = 0;
         P = 200;
         v1 = 0;
         v2 = 0;
@@ -207,43 +213,60 @@ class MurrayLevelsStateMachine {
 //Answers a question how close we are to the min in percents. Min == 0%, Max == 100%
         return ((price - min_price) * 100) / (max_price - min_price);
     }
-    short            get_current_murray_level(double price) {
+
+    short            get_murray_level(double price) {
         double mml_price = mml[0];
         short lvl = 0;
         while (price > mml_price) mml_price = mml[++lvl];
-        if (lvl == 0 || lvl == 12) return lvl;
+        if (lvl <= 0 || lvl >= 12) return lvl;
         short maxLvl = lvl, minLvl = --lvl;
         return get_price_percentage(price, mml[maxLvl], mml[minLvl]) <= 50.0 ? minLvl : maxLvl;
     }
+    datetime            get_last_candle_time() const {
+        return last_rate.time;
+    }
+    double            get_last_candle_price() const {
+        return last_rate.close;
+    }
+    double           get_first_candle_price() const {
+        // For some reason when trying to store MqlRates it behaves like a static variable.
+        return cur_close_price;
+    }
+    double           get_mml_price(const short lvl) const {
+        return mml[lvl];
+    }
+    double           get_mml_diff() const {
+        return pips2price(price2pips(mml[0], mml[1]));
+    }
+    void             debug_print_ops() {
+        while(op_stack.Count() > 0) {
+            Print(op_stack.Pop());
+        }
+    }
     short            move() {
         // return 1 == continue; return 2 == MATCH; return 3 == no match - exit;
-        double price = next();
-        if (price < 0) {
-            return 3;
-        }
-        short murray_level = get_current_murray_level(price);
+        MqlRates rate = next();
+        double price = rate.close;
+        if (price <= 0) return 3;
+        short murray_level = get_murray_level(price);
+        if (!murray_level == trigger_level) return 3;
         Move *next_state = NULL;
-        if (state.next() == NULL) {
-            return 2;
-        }
-        if (state.enter(murray_level)) {
-            next_state = state.next();
-        }
-        if (state.exit(murray_level)) {
-            return 3;
-        }
-        if (next_state != NULL) {
-            state = next_state;
-        }
+        op_stack.Add(StringFormat("%s, price %f, low %f, high %f, Total pips %f, Level pips %f, time %s, it %i, lvl %i", state.name(), price, mml[0], mml[12], price2pips(mml[0], mml[12]), price2pips(mml[0], mml[1]), TimeToString(rate.time), start, murray_level));
+        if (state.next() == NULL) return 2;
+        if (state.enter(murray_level)) next_state = state.next();
+        if (state.exit(murray_level)) return 3;
+        if (next_state != NULL) state = next_state;
         return 1;
     };
 
-    double           next() {
+    MqlRates         next() {
         MqlRates rates[1];
         int copied = CopyRates(Symbol(), Period(), start, 1, rates);
-        if (copied <= 0) return -1;
+        //if (copied <= 0) return -1;
         start++;
-        return rates[0].close;
+        last_rate = rates[0];
+        if (cur_close_price == 0.0) cur_close_price = last_rate.close;
+        return last_rate;
     }
 };
 //+------------------------------------------------------------------+
