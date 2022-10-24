@@ -2,17 +2,19 @@ import sys
 
 import matplotlib
 
-matplotlib.use('Qt5Agg')
+matplotlib.use('QtAgg')
 
-from PyQt5 import QtCore, QtWidgets
+from PyQt6 import QtCore, QtWidgets
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 
 from lib.config import ConfigReader
 from lib.constants import CONFIG_FILENAME
 from lib.mt5client import Mt5Client
-from lib.renderers import (CandlesRenderer, MurrayLevelsRenderer, MurrayLevelsWorkflowSignalRenderer)
+from lib.renderers import (CandlesRenderer, CosineSimilarityRenderer,
+                           MurrayLevelsRenderer, MurrayLevelsWorkflowSignalRenderer)
+from lib.currency.utils import (data, normalize_by_min_max)
 from lib.workflows import (MurrayLevelBuyFlowSmaller, MurrayLevelSellFlowSmaller)
 
 
@@ -53,7 +55,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def __init__(self, data_streams, x_range):
         super().__init__()
         self.data_streams = data_streams
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setWindowTitle('Tester')
         self.centralWidget = QtWidgets.QWidget(self)
         self.gridLayout = QtWidgets.QGridLayout(self.centralWidget)
@@ -68,10 +70,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.bkwd_button.setText('Backward')
         self.bkwd_button.clicked.connect(self.onBackwardButtonClicked)
         self.inc_button = QtWidgets.QPushButton(self.centralWidget)
-        self.inc_button.setText('+')
+        self.inc_button.setText('-')
         self.inc_button.clicked.connect(self.onIncreaseButtonClicked)
         self.dec_button = QtWidgets.QPushButton(self.centralWidget)
-        self.dec_button.setText('-')
+        self.dec_button.setText('+')
         self.dec_button.clicked.connect(self.onDecreaseButtonClicked)
 
         self.position_lineedit = QtWidgets.QLineEdit(self.centralWidget)
@@ -121,28 +123,32 @@ WINDOW = 300
 
 total_samples = client.data(SYMBOL)
 
+model = normalize_by_min_max(data(SYMBOL, f'classified_figure_{SYMBOL}.txt'))
+
 c_render = CandlesRenderer(total_samples, WINDOW)
+cos_render = CosineSimilarityRenderer(total_samples, WINDOW, model)
 #ma20_render = MovingAverageRenderer(total_samples, WINDOW, 20, 'yellow')
 #ma50_render = MovingAverageRenderer(total_samples, WINDOW, 50, 'blue')
 #ma120_render = MovingAverageRenderer(total_samples, WINDOW, 120, 'red')
 #maw_render = ThreeMAWorkflowRenderer(total_samples, WINDOW)
-murray_render = MurrayLevelsRenderer(total_samples, WINDOW)
-murray_wsrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'red', MurrayLevelSellFlowSmaller, 9)
-murray_wbrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'blue', MurrayLevelBuyFlowSmaller, 3)
+#murray_render = MurrayLevelsRenderer(total_samples, WINDOW)
+#murray_wsrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'red', MurrayLevelSellFlowSmaller, 9)
+#murray_wbrender = MurrayLevelsWorkflowSignalRenderer(total_samples, WINDOW, 'blue', MurrayLevelBuyFlowSmaller, 3)
 #murray_wsrender = MurrayLevelsWorkflowSellRenderer(total_samples, WINDOW)
 
 aw = ApplicationWindow([
     c_render,
+    cos_render,
     #murray_render,
     # murray_wbrender,
-    murray_wsrender,
+    #murray_wsrender,
     #ma20_render, ma50_render, ma120_render,
     #maw_render
 ], WINDOW)
 aw.setWindowTitle('Tester')
 aw.show()
 
-sys.exit(qApp.exec_())
+sys.exit(qApp.exec())
 
 
 # TODO. Based on analyzer classes make a dashboard that will take values from metatrader, discover the best entry

@@ -1,40 +1,45 @@
-import re
 import sys
 
 import matplotlib
 
-matplotlib.use('Qt5Agg')
-from PyQt5 import QtCore, QtWidgets
+matplotlib.use('QtAgg')
+from PyQt6 import QtCore, QtWidgets
 
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 
-from lib.currency.indicators import moving_average
 from lib.config import ConfigReader
 from lib.constants import CONFIG_FILENAME, EVALUATION_RANGE
 from lib.mt5client import Mt5Client
 
 
 class MplCanvas(FigureCanvasQTAgg):
-    def __init__(self, total, data, parent=None, width=5, height=4, dpi=100):
+    def __init__(self, parent=None, width=5, height=4, dpi=100):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
-        self.total = total
-        self.ochl = data
+        self.evaluation_range = EVALUATION_RANGE
+        self.total = []
+        self.ochl = []
 
         super().__init__(self.fig)
         self.setParent(parent)
 
-        FigureCanvasQTAgg.setSizePolicy(self, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        FigureCanvasQTAgg.setSizePolicy(
+            self, QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
         FigureCanvasQTAgg.updateGeometry(self)
 
-    @staticmethod
-    def compute_window_indices(start):
-        return start, start + EVALUATION_RANGE
+    def setCurrencyData(self, total):
+        self.total = total
+        self.ochl = [
+            (ind, cur.open, cur.close, cur.high, cur.low, cur.time) for ind, cur in enumerate(self.total.data)
+        ]
 
-    def compute_initial_figure(self, start, step=450):
+    def compute_window_indices(self, start):
+        return start, start + self.evaluation_range
+
+    def compute_initial_figure(self, start, step=450, evaluation_range=None):
         self.axes.clear()
         width = 0.2
         colorup = 'k'
@@ -42,7 +47,9 @@ class MplCanvas(FigureCanvasQTAgg):
         OFFSET = width / 2.0
         end = start + step
         data = self.ochl[start:end]
-
+        self.evaluation_range = evaluation_range if evaluation_range else self.evaluation_range
+        if not data:
+            return
         for q in data:
             t, open, close, high, low = q[:5]
             up = close >= open
@@ -54,116 +61,146 @@ class MplCanvas(FigureCanvasQTAgg):
             self.axes.add_line(vline)
             self.axes.add_patch(rect)
 
-        x1, x2 = self.compute_window_indices(start)
+        x1, x2 = start, start + self.evaluation_range
         min_y = min(data, key=lambda x: x[-2])[-2]
         max_y = max(data, key=lambda x: x[-3])[-3]
         begin_line = Line2D(xdata=(x1, x1), ydata=(min_y, max_y), color='g', linewidth=1)
         end_line = Line2D(xdata=(x2, x2), ydata=(min_y, max_y), color='g', linewidth=1)
         self.axes.add_line(begin_line)
         self.axes.add_line(end_line)
-
-        plot_20_ma = list(enumerate(moving_average(
-            self.total, 20, self.total.data[end].time, self.total.data[start].time), start=start))
-        plot_50_ma = list(enumerate(moving_average(
-            self.total, 50, self.total.data[end].time, self.total.data[start].time), start=start))
-        plot_120_ma = list(enumerate(moving_average(
-            self.total, 120, self.total.data[end].time, self.total.data[start].time), start=start))
-        self.axes.plot([i[0] for i in plot_20_ma], [i[1] for i in plot_20_ma], '-', color='yellow')
-        self.axes.plot([i[0] for i in plot_50_ma], [i[1] for i in plot_50_ma], '-', color='blue')
-        self.axes.plot([i[0] for i in plot_120_ma], [i[1] for i in plot_120_ma], '-', color='red')
+        self.axes.plot()
 
         self.fig.canvas.draw()
         self.fig.canvas.flush_events()
 
 
 class ApplicationWindow(QtWidgets.QMainWindow):
-    def __init__(self, total_data):
+    def __init__(self):
         super().__init__()
-        self.stats = {
-            'buy_0': 0,
-            'buy_1': 0,
-            'buy_2': 0,
-            'buy_3': 0,
-            'sell_4': 0,
-            'sell_5': 0,
-            'sell_6': 0,
-            'sell_7': 0
-        }
-        self.start_pos = START_POS
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.start_pos = 0
+        self.setAttribute(QtCore.Qt.WidgetAttribute.WA_DeleteOnClose)
         self.setWindowTitle('Classifier')
         self.centralwidget = QtWidgets.QWidget(self)
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
-        self.sc = MplCanvas(
-            total_data,
-            [(ind, cur.open, cur.close, cur.high, cur.low, cur.time) for ind, cur in enumerate(total_data.data)],
-            self.centralwidget, width=5, height=4, dpi=100
-        )
-        self.sc.compute_initial_figure(self.start_pos)
+        self.sc = MplCanvas(self.centralwidget, width=5, height=4, dpi=100)
         self.gridLayout.addWidget(self.sc, 0, 0, 1, 1)
         self.horizontalLayout = QtWidgets.QHBoxLayout()
+        self.horizontalLayoutForLoadControls = QtWidgets.QHBoxLayout()
+        self.horizontalLayoutForMoveControls = QtWidgets.QHBoxLayout()
 
-        self.button_0 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_0.setText('Buy 0 strong (0)')
-        self.button_0.setObjectName('buy_0')
-        self.button_0.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_0)
-        self.button_1 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_1.setText('Buy 1 (0)')
-        self.button_1.setObjectName('buy_1')
-        self.button_1.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_1)
-        self.button_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_2.setText('Buy 2 (0)')
-        self.button_2.setObjectName('buy_2')
-        self.button_2.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_2)
-        self.button_3 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_3.setText('Buy 3 weak (0)')
-        self.button_3.setObjectName('buy_3')
-        self.button_3.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_3)
-        self.button_4 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_4.setText('Sell 4 weak (0)')
-        self.button_4.setObjectName('sell_4')
-        self.button_4.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_4)
-        self.button_5 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_5.setText('Sell 5 (0)')
-        self.button_5.setObjectName('sell_5')
-        self.button_5.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_5)
-        self.button_6 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_6.setText('Sell 6 (0)')
-        #TODO. Make buy_* and sell_* constants
-        self.button_6.setObjectName('sell_6')
-        self.button_6.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_6)
-        self.button_7 = QtWidgets.QPushButton(self.centralwidget)
-        self.button_7.setText('Sell 7 strong (0)')
-        self.button_7.setObjectName('sell_7')
-        self.button_7.clicked.connect(self.onButtonClicked)
-        self.horizontalLayout.addWidget(self.button_7)
+        self.classifyButton = QtWidgets.QPushButton(self.centralwidget)
+        self.classifyButton.setText('Classify')
+        self.classifyButton.setObjectName('classifyButton')
+        self.classifyButton.clicked.connect(self.onClassifyButtonClicked)
+        self.horizontalLayout.addWidget(self.classifyButton)
+
+        self.startPosLabel = QtWidgets.QLabel(self.centralwidget)
+        self.startPosLabel.setObjectName('startPosLabel')
+        self.startPosLabel.setText('Pos')
+        self.startPosLineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.startPosLineEdit.setObjectName('startPosLineEdit')
+        self.startPosLabel.setBuddy(self.startPosLineEdit)
+
+        self.evaluationLabel = QtWidgets.QLabel(self.centralwidget)
+        self.evaluationLabel.setObjectName('evaluationLabel')
+        self.evaluationLabel.setText('Evaluation range')
+        self.evaluationRangeLE = QtWidgets.QLineEdit(self.centralwidget)
+        self.evaluationRangeLE.setObjectName('evaluationRangeLE')
+        self.evaluationLabel.setBuddy(self.evaluationRangeLE)
+
+        self.forwardButton = QtWidgets.QPushButton(self.centralwidget)
+        self.forwardButton.setObjectName('forwardButton')
+        self.forwardButton.setText('Forward')
+        self.forwardButton.setToolTip('Move graph forward')
+        self.forwardButton.clicked.connect(self.onForwardButtonClicked)
+        self.jumpButton = QtWidgets.QPushButton(self.centralwidget)
+        self.jumpButton.setObjectName('jumpButton')
+        self.jumpButton.setText('Jump to')
+        self.jumpButton.setToolTip('Jump to a specified position')
+        self.jumpButton.clicked.connect(self.onJumpButtonClicked)
+        self.backwardButton = QtWidgets.QPushButton(self.centralwidget)
+        self.backwardButton.setObjectName('backwardButton')
+        self.backwardButton.setText('Backward')
+        self.backwardButton.setToolTip('Move graph backward')
+        self.backwardButton.clicked.connect(self.onBackwardButtonClicked)
+
+        self.loadCurrencyBtn = QtWidgets.QPushButton(self.centralwidget)
+        self.loadCurrencyBtn.setObjectName('loadCurrencyBtn')
+        self.loadCurrencyBtn.setText('Load')
+        self.loadCurrencyBtn.setToolTip('Load currency data into this application')
+        self.loadCurrencyBtn.clicked.connect(self.onLoadCurrencyButtonClicked)
+
+        self.currencyWidget = QtWidgets.QComboBox(self.centralwidget)
+        self.currencyWidget.setObjectName('currencyWidget')
+        self.currencyWidget.addItems(config['common']['currencies'])
+
+        self.periodWidget = QtWidgets.QComboBox(self.centralwidget)
+        self.periodWidget.setObjectName('periodWidget')
+        self.periodWidget.addItems(config['common']['timeframes'])
+
+        self.horizontalLayoutForLoadControls.addWidget(self.currencyWidget)
+        self.horizontalLayoutForLoadControls.addWidget(self.periodWidget)
+        self.horizontalLayoutForLoadControls.addWidget(self.evaluationLabel)
+        self.horizontalLayoutForLoadControls.addWidget(self.evaluationRangeLE)
+        self.horizontalLayoutForLoadControls.addWidget(self.loadCurrencyBtn)
+
+        self.horizontalLayoutForMoveControls.addWidget(self.jumpButton)
+        self.horizontalLayoutForMoveControls.addWidget(self.startPosLabel)
+        self.horizontalLayoutForMoveControls.addWidget(self.startPosLineEdit)
+        self.horizontalLayoutForMoveControls.addWidget(self.backwardButton)
+        self.horizontalLayoutForMoveControls.addWidget(self.forwardButton)
 
         self.gridLayout.addLayout(self.horizontalLayout, 1, 0, 1, 1)
+        self.gridLayout.addLayout(self.horizontalLayoutForLoadControls, 2, 0, 1, 1)
+        self.gridLayout.addLayout(self.horizontalLayoutForMoveControls, 3, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
 
+    def loadData(self, total):
+        self.sc.setCurrencyData(total)
+        try:
+            evaluation_range = int(self.evaluationRangeLE.text())
+        except ValueError:
+            evaluation_range = None
+        self.sc.compute_initial_figure(self.start_pos, evaluation_range=evaluation_range)
+
     @QtCore.pyqtSlot()
-    def onButtonClicked(self):
-        sender = self.sender()
-        self.stats[sender.objectName()] += 1
-        sender.setText(
-            re.sub(r'\(\d+\)', f'({self.stats[sender.objectName()]})', sender.text(), count=1)
-        )
-        with open('classified_data.txt', 'a+') as f:
+    def onClassifyButtonClicked(self):
+        with open(f'classified_figure_{self.currencyWidget.currentText().upper()}.txt', 'a+') as f:
             start, end = self.sc.compute_window_indices(self.start_pos)
             data = self.sc.ochl[start:end]
-            f.write(f'##{sender.objectName()} {self.start_pos}\n')
             for d in data:
-                row = ','.join(map(str, d[1:]))
+                row = '\t'.join(map(str, d[1:]))
                 f.write(f'{row}\n')
 
-        self.start_pos += MOVING_STEP
+    @QtCore.pyqtSlot()
+    def onLoadCurrencyButtonClicked(self):
+        currency = self.currencyWidget.currentText()
+        period = self.periodWidget.currentText()
+        self.start_pos = int(self.startPosLineEdit.text() or 0)
+        client.rates_all_stored(currency, period, f'data_{currency.upper()}')
+        self.loadData(client.data(currency))
+
+    @QtCore.pyqtSlot()
+    def onForwardButtonClicked(self):
+        self.start_pos += 1
+        if self.start_pos > len(self.sc.total.data):
+            return
+        self.sc.compute_initial_figure(self.start_pos)
+
+    @QtCore.pyqtSlot()
+    def onBackwardButtonClicked(self):
+        self.start_pos -= 1
+        if self.start_pos < 0:
+            return
+        self.sc.compute_initial_figure(self.start_pos)
+
+    @QtCore.pyqtSlot()
+    def onJumpButtonClicked(self):
+        tmp_pos = self.start_pos
+        try:
+            self.start_pos = int(self.startPosLineEdit.text())
+        except ValueError:
+            self.start_pos = tmp_pos
         self.sc.compute_initial_figure(self.start_pos)
 
 
@@ -171,12 +208,7 @@ qApp = QtWidgets.QApplication(sys.argv)
 config = ConfigReader(CONFIG_FILENAME).load()
 client = Mt5Client(config)
 
-SYMBOL = 'EURUSD'
-MOVING_STEP = 2
-START_POS = 20700
-total = client.data(SYMBOL)
-
-aw = ApplicationWindow(total)
+aw = ApplicationWindow()
 aw.setWindowTitle('Classifier')
 aw.show()
-sys.exit(qApp.exec_())
+sys.exit(qApp.exec())
