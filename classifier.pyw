@@ -39,7 +39,13 @@ class MplCanvas(FigureCanvasQTAgg):
     def compute_window_indices(self, start):
         return start, start + self.evaluation_range
 
-    def compute_initial_figure(self, start, step=450, evaluation_range=None):
+    def increment_eval_range(self):
+        self.evaluation_range += 1
+
+    def decrement_eval_range(self):
+        self.evaluation_range -= 1
+
+    def compute_initial_figure(self, start, step=450):
         self.axes.clear()
         width = 0.2
         colorup = 'k'
@@ -47,7 +53,6 @@ class MplCanvas(FigureCanvasQTAgg):
         OFFSET = width / 2.0
         end = start + step
         data = self.ochl[start:end]
-        self.evaluation_range = evaluation_range if evaluation_range else self.evaluation_range
         if not data:
             return
         for q in data:
@@ -91,8 +96,26 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.classifyButton = QtWidgets.QPushButton(self.centralwidget)
         self.classifyButton.setText('Classify')
         self.classifyButton.setObjectName('classifyButton')
+        self.classifyButton.setToolTip('Store selected region of candles in a classified_figure_CURRENCY.txt file')
         self.classifyButton.clicked.connect(self.onClassifyButtonClicked)
-        self.horizontalLayout.addWidget(self.classifyButton)
+
+        self.increaseRangeButton = QtWidgets.QPushButton(self.centralwidget)
+        self.increaseRangeButton.setText('Range +')
+        self.increaseRangeButton.setObjectName('increaseRangeButton')
+        self.increaseRangeButton.setToolTip('Enlarge evaluation range')
+        self.increaseRangeButton.clicked.connect(self.onIncRangeButtonClicked)
+
+        self.decreaseRangeButton = QtWidgets.QPushButton(self.centralwidget)
+        self.decreaseRangeButton.setText('Range -')
+        self.decreaseRangeButton.setObjectName('decreaseRangeButton')
+        self.decreaseRangeButton.setToolTip('Shrink evaluation range')
+        self.decreaseRangeButton.clicked.connect(self.onDecrRangeButtonClicked)
+
+        self.viewModelButton = QtWidgets.QPushButton(self.centralwidget)
+        self.viewModelButton.setText('View Model')
+        self.viewModelButton.setObjectName('viewModelButton')
+        self.viewModelButton.setToolTip('Display classified figure')
+        self.viewModelButton.clicked.connect(self.onViewModelButtonClicked)
 
         self.startPosLabel = QtWidgets.QLabel(self.centralwidget)
         self.startPosLabel.setObjectName('startPosLabel')
@@ -100,13 +123,6 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.startPosLineEdit = QtWidgets.QLineEdit(self.centralwidget)
         self.startPosLineEdit.setObjectName('startPosLineEdit')
         self.startPosLabel.setBuddy(self.startPosLineEdit)
-
-        self.evaluationLabel = QtWidgets.QLabel(self.centralwidget)
-        self.evaluationLabel.setObjectName('evaluationLabel')
-        self.evaluationLabel.setText('Evaluation range')
-        self.evaluationRangeLE = QtWidgets.QLineEdit(self.centralwidget)
-        self.evaluationRangeLE.setObjectName('evaluationRangeLE')
-        self.evaluationLabel.setBuddy(self.evaluationRangeLE)
 
         self.forwardButton = QtWidgets.QPushButton(self.centralwidget)
         self.forwardButton.setObjectName('forwardButton')
@@ -138,10 +154,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.periodWidget.setObjectName('periodWidget')
         self.periodWidget.addItems(config['common']['timeframes'])
 
+        self.horizontalLayout.addWidget(self.classifyButton)
+        self.horizontalLayout.addWidget(self.viewModelButton)
+        self.horizontalLayout.addWidget(self.increaseRangeButton)
+        self.horizontalLayout.addWidget(self.decreaseRangeButton)
         self.horizontalLayoutForLoadControls.addWidget(self.currencyWidget)
         self.horizontalLayoutForLoadControls.addWidget(self.periodWidget)
-        self.horizontalLayoutForLoadControls.addWidget(self.evaluationLabel)
-        self.horizontalLayoutForLoadControls.addWidget(self.evaluationRangeLE)
         self.horizontalLayoutForLoadControls.addWidget(self.loadCurrencyBtn)
 
         self.horizontalLayoutForMoveControls.addWidget(self.jumpButton)
@@ -157,11 +175,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     def loadData(self, total):
         self.sc.setCurrencyData(total)
-        try:
-            evaluation_range = int(self.evaluationRangeLE.text())
-        except ValueError:
-            evaluation_range = None
-        self.sc.compute_initial_figure(self.start_pos, evaluation_range=evaluation_range)
+        self.sc.compute_initial_figure(self.start_pos)
 
     @QtCore.pyqtSlot()
     def onClassifyButtonClicked(self):
@@ -171,6 +185,22 @@ class ApplicationWindow(QtWidgets.QMainWindow):
             for d in data:
                 row = '\t'.join(map(str, d[1:]))
                 f.write(f'{row}\n')
+
+    @QtCore.pyqtSlot()
+    def onViewModelButtonClicked(self):
+        currency = self.currencyWidget.currentText()
+        self.start_pos = 0
+        self.loadData(client.data(currency, f'classified_figure_{currency.upper()}.txt'))
+
+    @QtCore.pyqtSlot()
+    def onIncRangeButtonClicked(self):
+        self.sc.increment_eval_range()
+        self.sc.compute_initial_figure(self.start_pos)
+
+    @QtCore.pyqtSlot()
+    def onDecrRangeButtonClicked(self):
+        self.sc.decrement_eval_range()
+        self.sc.compute_initial_figure(self.start_pos)
 
     @QtCore.pyqtSlot()
     def onLoadCurrencyButtonClicked(self):
