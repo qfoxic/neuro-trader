@@ -262,7 +262,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         cos_sim_stream = enumerate(cos_similarity(total_samples, model))
 
         for ind, sim in cos_sim_stream:
-            if sim > 0.98:
+            if sim > 0.97:
                 self.matched_figures.append([ind, sim])
         self.nextFigureButton.setDisabled(False)
         print(self.matched_figures)

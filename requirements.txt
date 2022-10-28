@@ -1,0 +1,4 @@
+sklearn~=0.0
+scikit-learn~=1.1.2
+PyQt6~=6.4.0
+matplotlib~=3.6.1
