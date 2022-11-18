@@ -17,7 +17,7 @@ router = APIRouter(
 
 
 @router.get("/match/{trade_op}")
-async def match(trade_op: OperationType, pattern: str = Query(description="Comma separated close prices", min_length=4, max_length=300, regex='^[0-9.,]+$'),
+async def match(trade_op: OperationType, pattern: str = Query(description="Comma separated close prices", min_length=4, max_length=2000, regex='^[0-9.,]+$'),
                 only_score: bool = True):
     models = load_trade_models(trade_op)
     tradePattern = make_sample_from_array([float(p) for p in pattern.split(',')])
