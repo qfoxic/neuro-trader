@@ -15,7 +15,7 @@ from matplotlib.patches import Rectangle
 from dashboard.config import ConfigReader
 from dashboard.constants import CONFIG_FILENAME, EVALUATION_RANGE, VIEW_RANGE
 from corelib.mt5client import Mt5Client
-from corelib.utils import normalize_by_min_max, cos_similarity
+from corelib.utils import normalize_by_min_max, cos_similarity1
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -259,15 +259,18 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def onFindPositionsButtonClicked(self):
         currency = self.currencyWidget.currentText()
         total_samples = client.data(currency, f'data_{currency.upper()}')
-
+        debug_matched_figures = []
         model = normalize_by_min_max(client.data(currency, f'classified_figure_{currency.upper()}.txt'))
-        cos_sim_stream = enumerate(cos_similarity(total_samples, model))
 
-        for ind, sim in cos_sim_stream:
+        cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
+
+        for ind, (date, sim) in cos_sim_stream:
             if sim > 0.97:
                 self.matched_figures.append([ind, sim])
+                debug_matched_figures.append([date, sim])
         self.nextFigureButton.setDisabled(False)
-        print(self.matched_figures)
+
+        print(",".join([str(i[0]) for i in debug_matched_figures]))
         if not self.sc.ochl:
             self.loadData()
 

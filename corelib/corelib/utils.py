@@ -73,6 +73,16 @@ def cos_similarity(sample, model):
         yield cosine_similarity([chunk], [model])[0][0]
 
 
+def cos_similarity1(sample, model):
+    data = sample.data
+    wnd = len(model)
+    for ind, val in enumerate(data):
+        chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
+        if len(chunk) != len(model):
+            break
+        yield (val.time, cosine_similarity([chunk], [model])[0][0])
+
+
 def cos_similarity_score(sample, model):
     pattern = normalize_by_min_max(sample)
     model_length = len(model)
