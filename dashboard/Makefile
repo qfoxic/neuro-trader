@@ -1,8 +1,8 @@
 run:
 	poetry run python classifier.pyw
 
-precise ?= 0.97
-model ?= classified_figure.txt
+precise ?= 0.98
+model ?= thirdwavebuy.txt
 search:
 	poetry run python search_entry_points.py -p $(precise) -m $(model)
 
