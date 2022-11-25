@@ -1,5 +1,2 @@
-run-prod:
-	uvicorn main:app
-
-run-dev:
-	uvicorn main:app --reload
+run:
+	poetry run uvicorn server.main:app --reload
