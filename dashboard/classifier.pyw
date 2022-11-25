@@ -15,7 +15,7 @@ from matplotlib.patches import Rectangle
 from dashboard.config import ConfigReader
 from dashboard.constants import CONFIG_FILENAME, EVALUATION_RANGE, VIEW_RANGE
 from corelib.mt5client import Mt5Client
-from corelib.utils import normalize_by_min_max, cos_similarity1
+from corelib.utils import normalize_by_min_max, cos_similarity1, mirror_normalized_array
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -40,6 +40,15 @@ class MplCanvas(FigureCanvasQTAgg):
         self.total = total
         self.ochl = [
             (ind, cur.open, cur.close, cur.high, cur.low, cur.time) for ind, cur in enumerate(self.total.data)
+        ]
+
+    def setModelCurrencyData(self, total, mirrored=False):
+        if not total: return
+
+        self.total = total
+        normalized = mirror_normalized_array(normalize_by_min_max(self.total)) if mirrored else normalize_by_min_max(self.total)
+        self.ochl = [
+            (ind, cur, cur, cur, cur, cur) for ind, cur in enumerate(normalized)
         ]
 
     def compute_window_indices(self, start):
@@ -114,6 +123,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.viewDataButton.setToolTip('Load data from a local file')
         self.viewDataButton.clicked.connect(self.onLoadStoredButtonClicked)
 
+        self.mirroredCheckBox = QtWidgets.QCheckBox(self.centralwidget)
+        self.mirroredCheckBox.setText('Mirror model')
+        self.mirroredCheckBox.setObjectName('mirroredCheckBox')
+
         self.findPositionsButton = QtWidgets.QPushButton(self.centralwidget)
         self.findPositionsButton.setText('Run matching algorithm')
         self.findPositionsButton.setObjectName('findPositionsButton')
@@ -167,6 +180,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.viewModelButton.setToolTip('Display classified figure')
         self.viewModelButton.clicked.connect(self.onViewModelButtonClicked)
 
+        self.viewMirrorModelButton = QtWidgets.QPushButton(self.centralwidget)
+        self.viewMirrorModelButton.setText('View Mirrored Model')
+        self.viewMirrorModelButton.setObjectName('viewMirrorModelButton')
+        self.viewMirrorModelButton.setToolTip('Display classified figure')
+        self.viewMirrorModelButton.clicked.connect(self.onViewMirrorModelButtonClicked)
+
         self.startPosLabel = QtWidgets.QLabel(self.centralwidget)
         self.startPosLabel.setObjectName('startPosLabel')
         self.startPosLabel.setText('Pos')
@@ -206,6 +225,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
         self.horizontalLayout.addWidget(self.viewDataButton)
         self.horizontalLayout.addWidget(self.viewModelButton)
+        self.horizontalLayout.addWidget(self.viewMirrorModelButton)
         self.horizontalLayout.addWidget(self.classifyButton)
         self.horizontalLayout.addWidget(self.increaseRangeButton)
         self.horizontalLayout.addWidget(self.decreaseRangeButton)
@@ -215,6 +235,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.horizontalLayoutForLoadControls.addWidget(self.periodWidget)
         self.horizontalLayoutForLoadControls.addWidget(self.loadCurrencyBtn)
 
+        self.horizontalLayoutForMatchControls.addWidget(self.mirroredCheckBox)
         self.horizontalLayoutForMatchControls.addWidget(self.findPositionsButton)
         self.horizontalLayoutForMatchControls.addWidget(self.prevFigureButton)
         self.horizontalLayoutForMatchControls.addWidget(self.nextFigureButton)
@@ -239,11 +260,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.sc.setCurrencyData(total)
         self.sc.compute_initial_figure(self.start_pos)
 
-    def loadModel(self):
+    def loadModel(self, mirrored=False):
         currency = self.currencyWidget.currentText()
         self.start_pos = 0
         total = client.data(currency, f'classified_figure_{currency.upper()}.txt')
-        self.sc.setCurrencyData(total)
+        self.sc.setModelCurrencyData(total, mirrored)
         self.sc.compute_initial_figure(self.start_pos)
 
     @QtCore.pyqtSlot()
@@ -261,6 +282,9 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         total_samples = client.data(currency, f'data_{currency.upper()}')
         debug_matched_figures = []
         model = normalize_by_min_max(client.data(currency, f'classified_figure_{currency.upper()}.txt'))
+
+        if self.mirroredCheckBox.isChecked():
+            model = mirror_normalized_array(model)
 
         cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
 
@@ -300,6 +324,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def onViewModelButtonClicked(self):
         self.loadModel()
+
+    @QtCore.pyqtSlot()
+    def onViewMirrorModelButtonClicked(self):
+        self.loadModel(mirrored=True)
 
     @QtCore.pyqtSlot()
     def onIncRangeButtonClicked(self):
