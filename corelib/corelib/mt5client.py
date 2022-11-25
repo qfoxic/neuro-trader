@@ -80,6 +80,13 @@ class Mt5Client:
             shutil.copyfile(resp_file_name, copy_to)
         return resp_file_name
 
+    def srates_all_stored(self, currencies, period, copy_to=None):
+        cmd_id = self.send_command('sratesallstored' + period.lower(), currencies)
+        resp_file_name = self.wait_for_resp('sratesallstored' + period.lower(), cmd_id)
+        if copy_to and resp_file_name:
+            shutil.copyfile(resp_file_name, copy_to)
+        return resp_file_name
+
     def chart(self, currency):
         cmd_id = self.send_command('chart', currency)
         resp = self.wait_for_resp('chart', cmd_id)
