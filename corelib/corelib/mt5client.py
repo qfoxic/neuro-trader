@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 
-from corelib.datatypes import Reply
+from corelib.datatypes import Reply, TradeInfo
 from corelib.utils import data
 
 
@@ -76,16 +76,41 @@ class Mt5Client:
     def rates_all_stored(self, currencies, period, copy_to=None):
         cmd_id = self.send_command('ratesallstored' + period.lower(), currencies)
         resp_file_name = self.wait_for_resp('ratesallstored' + period.lower(), cmd_id)
+        if not resp_file_name:
+            return
         if copy_to and resp_file_name:
             shutil.copyfile(resp_file_name, copy_to)
+        os.remove(resp_file_name)
         return resp_file_name
 
     def srates_all_stored(self, currencies, period, copy_to=None):
         cmd_id = self.send_command('sratesallstored' + period.lower(), currencies)
         resp_file_name = self.wait_for_resp('sratesallstored' + period.lower(), cmd_id)
+        if not resp_file_name:
+            return
         if copy_to and resp_file_name:
             shutil.copyfile(resp_file_name, copy_to)
-        return resp_file_name
+        os.remove(resp_file_name)
+
+    def get_info(self, currencies):
+        cmd_id = self.send_command('getinfo', currencies)
+        resp_file_name = self.wait_for_resp('getinfo', cmd_id)
+        if not resp_file_name:
+            return
+        with open(resp_file_name) as currency_info:
+            line = currency_info.readline().strip().split('\t')
+            if not line:
+                return
+
+            (spread, time1, forecast1, actual1, prev1, impact1, time2, forecast2, actual2, prev2, impact2, event1, event2 ) = line
+            os.remove(resp_file_name)
+
+            return TradeInfo(
+                currencies, float(spread),
+                int(time1), int(forecast1), int(actual1), int(prev1), int(impact1),
+                int(time2), int(forecast2), int(actual2), int(prev2), int(impact2),
+                event1, event2
+            )
 
     def chart(self, currency):
         cmd_id = self.send_command('chart', currency)
