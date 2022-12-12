@@ -20,7 +20,11 @@ router = APIRouter(
 async def match(trade_op: OperationType, pattern: str = Query(description="Comma separated close prices", min_length=4, max_length=2000, regex='^[0-9.,]+$'),
                 only_score: bool = True):
     buy_models = load_trade_models()
-    tradePattern = make_sample_from_array([float(p) for p in pattern.split(',')])
+    incomingData = [float(p) for p in pattern.split(',')]
+    # First number is higest, second is lowest
+    tradePattern = make_sample_from_array(incomingData[2:])
+    tradePattern.max_price = incomingData[0]
+    tradePattern.min_price = incomingData[1]
     if only_score:
         if trade_op == OperationType.buy:
             return max([cos_similarity_score(tradePattern, model) for model in buy_models.values()])
@@ -29,4 +33,4 @@ async def match(trade_op: OperationType, pattern: str = Query(description="Comma
     if trade_op == OperationType.buy:
         return [{name: cos_similarity_score(tradePattern, model) for name, model in buy_models.items()}]
     else:
-        return [cos_similarity_score(tradePattern, mirror_normalized_array(model)) for model in buy_models.values()]
+        return [{name: cos_similarity_score(tradePattern, mirror_normalized_array(model)) for name, model in buy_models.items()}]
