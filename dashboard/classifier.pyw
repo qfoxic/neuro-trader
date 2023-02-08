@@ -193,6 +193,14 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.startPosLineEdit.setObjectName('startPosLineEdit')
         self.startPosLabel.setBuddy(self.startPosLineEdit)
 
+        self.preciseLabel = QtWidgets.QLabel(self.centralwidget)
+        self.preciseLabel.setObjectName('preciseLabel')
+        self.preciseLabel.setText('Precise')
+        self.preciseLineEdit = QtWidgets.QLineEdit(self.centralwidget)
+        self.preciseLineEdit.setObjectName('preciseLineEdit')
+        self.preciseLineEdit.setText('0.98')
+        self.preciseLabel.setBuddy(self.preciseLineEdit)
+
         self.forwardButton = QtWidgets.QPushButton(self.centralwidget)
         self.forwardButton.setObjectName('forwardButton')
         self.forwardButton.setText('Forward')
@@ -235,6 +243,8 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         self.horizontalLayoutForLoadControls.addWidget(self.periodWidget)
         self.horizontalLayoutForLoadControls.addWidget(self.loadCurrencyBtn)
 
+        self.horizontalLayoutForMatchControls.addWidget(self.preciseLabel)
+        self.horizontalLayoutForMatchControls.addWidget(self.preciseLineEdit)
         self.horizontalLayoutForMatchControls.addWidget(self.mirroredCheckBox)
         self.horizontalLayoutForMatchControls.addWidget(self.findPositionsButton)
         self.horizontalLayoutForMatchControls.addWidget(self.prevFigureButton)
@@ -264,6 +274,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         currency = self.currencyWidget.currentText()
         self.start_pos = 0
         total = client.data(currency, f'classified_figure_{currency.upper()}.txt')
+        self.sc.evaluation_range = len(total)
         self.sc.setModelCurrencyData(total, mirrored)
         self.sc.compute_initial_figure(self.start_pos)
 
@@ -278,6 +289,10 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def onFindPositionsButtonClicked(self):
+        self.matched_figures = []
+        self.nextFigureButton.setDisabled(True)
+        self.prevFigureButton.setDisabled(True)
+
         currency = self.currencyWidget.currentText()
         total_samples = client.data(currency, f'data_{currency.upper()}')
         debug_matched_figures = []
@@ -289,7 +304,7 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
 
         for ind, (date, sim) in cos_sim_stream:
-            if sim > 0.98:
+            if sim > float(self.preciseLineEdit.text()):
                 self.matched_figures.append([ind, sim])
                 debug_matched_figures.append([date, sim])
         self.nextFigureButton.setDisabled(False)
