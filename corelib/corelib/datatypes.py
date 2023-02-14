@@ -1,5 +1,6 @@
 from collections import namedtuple
 from dataclasses import dataclass, field
+from itertools import pairwise
 
 CurrencyData = namedtuple('CurrencyData', ['group', 'data', 'currency', 'symbol_digits'])
 CurrencyProcessed = namedtuple('CurrencyProcessed', ['group', 'currency', 'metrics'])
