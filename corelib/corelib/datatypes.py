@@ -17,6 +17,26 @@ class Sample:
     min_price: float | None  = None
     data: list = field(default_factory=list)
 
+    def __len__(self):
+        return len(self.data) - 1
+
+    def mirror(self):
+        math_matrics = [round(num[0].close - num[1].close, 4) for num in pairwise(self.data)]
+        start_num = self.data[-1].close
+        mirrored_data = []
+
+        for ind, cur in enumerate(self.data):
+            if ind == 0:
+                mirrored_data.append(
+                    Currency(open=cur.open, close=start_num, high=cur.high, low=cur.low, time=cur.time)
+                )
+                continue
+            start_num = round(start_num + math_matrics[ind - 1], 4)
+            mirrored_data.append(
+                Currency(open=cur.open, close=start_num, high=cur.high, low=cur.low, time=cur.time)
+            )
+        self.data = mirrored_data
+        return self
 
 @dataclass
 class TradeInfo:

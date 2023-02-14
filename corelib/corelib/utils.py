@@ -93,7 +93,3 @@ def cos_similarity_score(sample, model):
     if pattern_length < model_length:
         return 0.0
     return cosine_similarity([pattern], [model])[0][0]
-
-
-def mirror_normalized_array(arr):
-    return [120 - i for i in arr]

@@ -15,7 +15,7 @@ from matplotlib.patches import Rectangle
 from dashboard.config import ConfigReader
 from dashboard.constants import CONFIG_FILENAME, EVALUATION_RANGE, VIEW_RANGE
 from corelib.mt5client import Mt5Client
-from corelib.utils import normalize_by_min_max, cos_similarity1, mirror_normalized_array
+from corelib.utils import normalize_by_min_max, cos_similarity1
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -42,11 +42,11 @@ class MplCanvas(FigureCanvasQTAgg):
             (ind, cur.open, cur.close, cur.high, cur.low, cur.time) for ind, cur in enumerate(self.total.data)
         ]
 
-    def setModelCurrencyData(self, total, mirrored=False):
+    def setModelCurrencyData(self, total):
         if not total: return
 
         self.total = total
-        normalized = mirror_normalized_array(normalize_by_min_max(self.total)) if mirrored else normalize_by_min_max(self.total)
+        normalized = normalize_by_min_max(self.total)
         self.ochl = [
             (ind, cur, cur, cur, cur, cur) for ind, cur in enumerate(normalized)
         ]
@@ -273,9 +273,12 @@ class ApplicationWindow(QtWidgets.QMainWindow):
     def loadModel(self, mirrored=False):
         currency = self.currencyWidget.currentText()
         self.start_pos = 0
-        total = client.data(currency, f'classified_figure_{currency.upper()}.txt')
+        total = (
+            client.data(currency, f'classified_figure_{currency.upper()}.txt').mirror()
+            if mirrored else client.data(currency, f'classified_figure_{currency.upper()}.txt')
+        )
         self.sc.evaluation_range = len(total)
-        self.sc.setModelCurrencyData(total, mirrored)
+        self.sc.setModelCurrencyData(total)
         self.sc.compute_initial_figure(self.start_pos)
 
     @QtCore.pyqtSlot()
@@ -296,11 +299,11 @@ class ApplicationWindow(QtWidgets.QMainWindow):
         currency = self.currencyWidget.currentText()
         total_samples = client.data(currency, f'data_{currency.upper()}')
         debug_matched_figures = []
-        model = normalize_by_min_max(client.data(currency, f'classified_figure_{currency.upper()}.txt'))
-
-        if self.mirroredCheckBox.isChecked():
-            model = mirror_normalized_array(model)
-
+        model = normalize_by_min_max(
+            client.data(currency, f'classified_figure_{currency.upper()}.txt').mirror()
+            if self.mirroredCheckBox.isChecked() else
+            client.data(currency, f'classified_figure_{currency.upper()}.txt')
+        )
         cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
 
         for ind, (date, sim) in cos_sim_stream:
