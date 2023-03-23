@@ -68,9 +68,10 @@ def cos_similarity(sample, model):
     wnd = len(model)
     for ind, val in enumerate(data):
         chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
+        next_candles = data[ind+wnd:ind+wnd+30]
         if len(chunk) != len(model):
             break
-        yield cosine_similarity([chunk], [model])[0][0]
+        yield (cosine_similarity([chunk], [model])[0][0], next_candles)
 
 
 def cos_similarity1(sample, model):
