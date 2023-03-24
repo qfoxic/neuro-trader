@@ -97,7 +97,7 @@ def main(currency, model_size, precise):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-c', '--currency', dest='currency', default='eurusd')
-    parser.add_option('-s', '--model-size', dest='model_size', default=60)
+    parser.add_option('-s', '--model-size', dest='model_size', default=90)
     parser.add_option('-p', '--precise', dest='precise', default=0.982)
 
     (options, args) = parser.parse_args()
