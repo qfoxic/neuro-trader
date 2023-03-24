@@ -58,7 +58,7 @@ def main(currency, model_size, precise):
                 tp_percent = round((tp_count / count) * 100)
                 st_percent = round((st_count / count) * 100)
                 if count > 7 and tp_percent > 65:
-                    store_file(sample.mirror(), f'{currency}_cont_sell_matches_{count}_st_{st_percent}_tp_{tp_percent}_mirror')
+                    store_file(sample.mirror(), f'{model_size}_{currency}_cont_sell_matches_{count}_st_{st_percent}_tp_{tp_percent}_mirror')
                     print(f"======== Continuation SELL model. Matches {count}. ST: {st_percent}, TP: {tp_percent} ========")
                     print(pattern_model)
             continue
@@ -89,7 +89,7 @@ def main(currency, model_size, precise):
                 tp_percent = round((tp_count / count) * 100)
                 st_percent = round((st_count / count) * 100)
                 if count > 7 and tp_percent > 65:
-                    store_file(sample, f'{currency}_cont_buy_matches_{count}_st_{st_percent}_tp_{tp_percent}')
+                    store_file(sample, f'{model_size}_{currency}_cont_buy_matches_{count}_st_{st_percent}_tp_{tp_percent}')
                     print(f"======== Continuation BUY model. Matches {count}. ST: {st_percent}, TP: {tp_percent} ========")
                     print(pattern_model)
             continue
@@ -97,7 +97,7 @@ def main(currency, model_size, precise):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-c', '--currency', dest='currency', default='eurusd')
-    parser.add_option('-s', '--model-size', dest='model_size', default=30)
+    parser.add_option('-s', '--model-size', dest='model_size', default=60)
     parser.add_option('-p', '--precise', dest='precise', default=0.982)
 
     (options, args) = parser.parse_args()
