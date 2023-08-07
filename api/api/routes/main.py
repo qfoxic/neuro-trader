@@ -1,7 +1,7 @@
 import datetime
 
 from fastapi import APIRouter, HTTPException, status
-from ..models.main import Users
+from ..models.main import Users, UserStatusEnum
 
 router = APIRouter()
 
@@ -11,6 +11,9 @@ async def verify_token(token: str):
         user = Users.from_id(token)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Token not found")
+
+    if user.status == UserStatusEnum.Suspended.value:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User is suspended")
 
     expire_at = user.subscription_expire_at
 
