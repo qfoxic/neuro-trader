@@ -10,3 +10,4 @@ async def read_root():
   }
 
 app.include_router(router, prefix="/v1")
+

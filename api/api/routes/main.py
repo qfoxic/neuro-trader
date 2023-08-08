@@ -5,7 +5,7 @@ from ..models.main import Users, UserStatusEnum
 
 router = APIRouter()
 
-@router.get("/verify/{token}")
+@router.post("/verify/{token}")
 async def verify_token(token: str):
     try:
         user = Users.from_id(token)
