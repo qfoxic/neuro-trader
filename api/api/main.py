@@ -1,7 +1,9 @@
-from fastapi import FastAPI
-from .routes.main import router
+from fastapi import FastAPI, Response, Request
+from .routes import router
+from starlette.background import BackgroundTask
 
 app = FastAPI()
+
 
 @app.get("/", tags=["Root"])
 async def read_root():

@@ -1,12 +1,5 @@
 import os
-from enum import Enum
 from pyairtable.orm import Model, fields as F
-
-
-class UserStatusEnum(Enum):
-    Active = "Active"
-    Suspended = "Suspended"
-    Testing = "Testing"
 
 
 class BaseMeta:
@@ -33,6 +26,18 @@ class Users(Model):
     status = F.SelectField("Status")
     group = F.LinkField("Group", Groups, lazy=False)
     subscription_expire_at = F.DateField("SubscriptionExpireAt")
+    initial_deposit = F.NumberField("InitialDeposit")
 
     class Meta(BaseMeta):
         table_name = "users"
+
+
+class Bots(Model):
+    name = F.TextField("Name")
+    user = F.LinkField("Users", Users, lazy=False)
+    created_at = F.CreatedTimeField("CreatedAt")
+    activity_type = F.SelectField("ActivityType")
+    currency = F.TextField("Currency")
+
+    class Meta(BaseMeta):
+        table_name = "bots"
