@@ -38,6 +38,7 @@ class Bots(Model):
     created_at = F.CreatedTimeField("CreatedAt")
     activity_type = F.SelectField("ActivityType")
     currency = F.TextField("Currency")
+    chain_type = F.SelectField("ChainType")
 
     class Meta(BaseMeta):
         table_name = "bots"

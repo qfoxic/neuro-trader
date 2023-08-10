@@ -18,3 +18,8 @@ class ActivityTypeEnum(str, Enum):
     AntiLockSell = "Anti Lock Sell"
     TrailingsBuy = "Trailings Buy"
     TrailingsSell = "Trailings Sell"
+
+
+class ChainTypeEnum(str, Enum):
+    Buy = "Buy"
+    Sell = "Sell"

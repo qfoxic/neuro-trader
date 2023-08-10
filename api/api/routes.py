@@ -40,7 +40,8 @@ async def create_activity(activity: ActivityForm):
     botActivity = Bots(
         activity_type=activity.activity_type,
         user=[user],
-        currency=activity.currency
+        currency=activity.currency,
+        chain_type=activity.chain_type
     )
     botActivity.save()
     return "OK"
@@ -54,7 +55,7 @@ async def delete_user_activities(activity: ActivityForm):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     botActivities = Bots.all(
-        formula=match({"Users": user.name, "Currency": activity.currency})
+        formula=match({"Users": user.name, "Currency": activity.currency, "ChainType": activity.chain_type.value})
     )
     Bots.batch_delete(botActivities)
     return "OK"
