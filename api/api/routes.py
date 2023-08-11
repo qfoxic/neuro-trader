@@ -68,12 +68,13 @@ async def update_user_deposit(userDeposit: UserDepositForm):
         user = Users.from_id(userDeposit.token)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-    print(f"{user.deposit_updated_at.month}  {datetime.now().month}")
+
     if not user.initial_deposit:
         user.initial_deposit = userDeposit.deposit
         user.current_deposit = userDeposit.deposit
         user.save()
     elif user.deposit_updated_at.month != datetime.now().month:
+        user.monthly_profit = userDeposit.deposit - user.current_deposit
         user.current_deposit = userDeposit.deposit
         user.save()
 
