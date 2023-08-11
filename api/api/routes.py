@@ -2,9 +2,10 @@ import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from pyairtable.formulas import match
+from datetime import datetime
 from .enums import UserStatusEnum
 from .airmodels import Users, Bots
-from .forms import ActivityForm
+from .forms import ActivityForm, UserDepositForm
 
 
 router = APIRouter()
@@ -58,4 +59,22 @@ async def delete_user_activities(activity: ActivityForm):
         formula=match({"Users": user.name, "Currency": activity.currency, "ChainType": activity.chain_type.value})
     )
     Bots.batch_delete(botActivities)
+    return "OK"
+
+
+@router.post("/bots/deposit")
+async def update_user_deposit(userDeposit: UserDepositForm):
+    try:
+        user = Users.from_id(userDeposit.token)
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    print(f"{user.deposit_updated_at.month}  {datetime.now().month}")
+    if not user.initial_deposit:
+        user.initial_deposit = userDeposit.deposit
+        user.current_deposit = userDeposit.deposit
+        user.save()
+    elif user.deposit_updated_at.month != datetime.now().month:
+        user.current_deposit = userDeposit.deposit
+        user.save()
+
     return "OK"

@@ -7,3 +7,8 @@ class ActivityForm(BaseModel):
     token: str
     currency: str
     chain_type: ChainTypeEnum
+
+
+class UserDepositForm(BaseModel):
+    token: str
+    deposit: float

@@ -27,6 +27,8 @@ class Users(Model):
     group = F.LinkField("Group", Groups, lazy=False)
     subscription_expire_at = F.DateField("SubscriptionExpireAt")
     initial_deposit = F.NumberField("InitialDeposit")
+    current_deposit = F.NumberField("CurrentDeposit")
+    deposit_updated_at = F.CreatedTimeField("DepositUpdatedAt")
 
     class Meta(BaseMeta):
         table_name = "users"
