@@ -2,7 +2,6 @@ import datetime
 
 from fastapi import APIRouter, HTTPException, status
 from pyairtable.formulas import match
-from datetime import datetime
 from .enums import UserStatusEnum
 from .airmodels import Users, Bots
 from .forms import ActivityForm, UserDepositForm
@@ -68,12 +67,11 @@ async def update_user_deposit(userDeposit: UserDepositForm):
         user = Users.from_id(userDeposit.token)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
-
     if not user.initial_deposit:
         user.initial_deposit = userDeposit.deposit
         user.current_deposit = userDeposit.deposit
         user.save()
-    elif user.deposit_updated_at.month != datetime.now().month:
+    elif user.deposit_updated_at.month != datetime.datetime.now().month:
         user.monthly_profit = userDeposit.deposit - user.current_deposit
         user.current_deposit = userDeposit.deposit
         user.save()
