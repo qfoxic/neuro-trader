@@ -3,8 +3,8 @@ import datetime
 from fastapi import APIRouter, HTTPException, status
 from pyairtable.formulas import match
 from .enums import UserStatusEnum
-from .airmodels import Users, Bots
-from .forms import ActivityForm, UserDepositForm
+from .airmodels import Users, Bots, Transactions
+from .forms import ActivityForm, UserDepositForm, UserTransactionForm
 
 
 router = APIRouter()
@@ -27,7 +27,6 @@ async def verify_token(token: str):
 
     if (expire_at - datetime.date.today()).days <= 0:
         raise HTTPException(status_code=status.HTTP_402_PAYMENT_REQUIRED, detail="Renew subscription")
-
     return "OK"
 
 
@@ -67,6 +66,7 @@ async def update_user_deposit(userDeposit: UserDepositForm):
         user = Users.from_id(userDeposit.token)
     except:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
     if not user.initial_deposit:
         user.initial_deposit = userDeposit.deposit
         user.current_deposit = userDeposit.deposit
@@ -75,5 +75,21 @@ async def update_user_deposit(userDeposit: UserDepositForm):
         user.monthly_profit = userDeposit.deposit - user.current_deposit
         user.current_deposit = userDeposit.deposit
         user.save()
+    return "OK"
 
+
+@router.post("/bots/transactions")
+async def add_bot_transaction(userTransaction: UserTransactionForm):
+    try:
+        user = Users.from_id(userTransaction.token)
+    except:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+
+    transaction = Transactions(
+        user = [user],
+        currency = userTransaction.currency,
+        chain_type = userTransaction.chain_type,
+        profit = userTransaction.profit
+    )
+    transaction.save()
     return "OK"

@@ -45,3 +45,14 @@ class Bots(Model):
 
     class Meta(BaseMeta):
         table_name = "bots"
+
+
+class Transactions(Model):
+    created_at = F.CreatedTimeField("CreatedAt")
+    user = F.LinkField("User", Users, lazy=False)
+    currency = F.TextField("Currency")
+    chain_type = F.SelectField("ChainType")
+    profit = F.NumberField("Profit")
+
+    class Meta(BaseMeta):
+        table_name = "transactions"

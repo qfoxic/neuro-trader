@@ -12,3 +12,10 @@ class ActivityForm(BaseModel):
 class UserDepositForm(BaseModel):
     token: str
     deposit: float
+
+
+class UserTransactionForm(BaseModel):
+    token: str
+    profit: float
+    currency: str
+    chain_type: ChainTypeEnum
