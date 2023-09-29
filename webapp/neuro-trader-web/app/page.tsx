@@ -167,8 +167,14 @@ export default function Home() {
                 </SubscriptionCard>
               </div>
               <div className="flex flex-col">
-                <div>button1</div>
-                <div>button2</div>
+                <div className="flex flex-col items-center py-10">
+                  <RoundedButton
+                      buttonColor={"bg-white"}
+                      textColor={"text-gray-400"}
+                      border="border-2"
+                      text="Детальний опис робота"
+                      icon="/download.png" />
+                </div>
               </div>
             </section>
             <section className="bg-indigo-500">Row 5</section>
