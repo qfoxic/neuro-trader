@@ -4,7 +4,9 @@ import RoundedButton from './components/RoundedButton';
 import InfoCard from './components/InfoCard';
 import SectionTitle from './components/SectionTitle';
 import StrongBlue from './components/StrongBlue';
+import StrongWhite from './components/StrongWhite';
 import { SubscriptionCard, SubscriptionCardMenuItem } from './components/SubscriptionCard';
+import { StartEarnCard } from './components/StartEarnCard';
 
 
 export default function Home() {
@@ -22,7 +24,7 @@ export default function Home() {
       <main className="flex flex-col">
         <div className="h-full w-full">
           <div className="flex flex-col">
-            <section className="bg-cover bg-center bg-no-repeat min-h-screen bg-[url('/robot.png')] py-10 px-40">
+            <section className="bg-cover bg-center min-h-screen bg-[url('/robot.png')] py-10 px-40">
               <ul className="flex justify-between items-center">
                 <li>
                   <Image
@@ -169,15 +171,45 @@ export default function Home() {
               <div className="flex flex-col">
                 <div className="flex flex-col items-center py-10">
                   <RoundedButton
-                      buttonColor={"bg-white"}
-                      textColor={"text-gray-400"}
-                      border="border-2"
-                      text="Детальний опис робота"
-                      icon="/download.png" />
+                    buttonColor={"bg-white"}
+                    textColor={"text-gray-400"}
+                    border="border-2"
+                    text="Детальний опис робота"
+                    icon="/download.png" />
                 </div>
               </div>
             </section>
-            <section className="bg-indigo-500">Row 5</section>
+            <section className="flex-col bg-blue-950 items-center py-20">
+              <SectionTitle>
+                <p className="font-medium text-2xl"><StrongWhite>Щоб почати заробляти разом з Matcher</StrongWhite></p>
+                <p className="font-medium text-xl text-white">потрібно здійснити декілька простих кроків</p>
+              </SectionTitle>
+              <div className="flex justify-center gap-4">
+                <StartEarnCard stepNumber="1." imageSrc="/pen.png">
+                  <p><strong>Пройти реєстрацію</strong> і дочекатись</p>
+                  <p>появи токену</p>
+                </StartEarnCard>
+                <StartEarnCard stepNumber="2." imageSrc="/deal.png">
+                  <p><strong>Відкрити</strong> і поповнити <strong>рахунок</strong> в </p>
+                  <p><strong>брокера</strong></p>
+                  <div className="flex">
+                    <Image
+                      className="object-contain"
+                      src="/info.png"
+                      width={15}
+                      height={15}
+                      alt="..."
+                    ></Image>
+                    <p className="pl-2 text-sky-700">Обирайте перевірених брокерів</p>
+                  </div>
+                </StartEarnCard>
+                <StartEarnCard stepNumber="3." imageSrc="/development.png">
+                  <p><strong>Скачати і встановити</strong> робота по</p>
+                  <p>інструкції в текстовому</p>
+                  <p>документі, який буде з роботом</p>
+                </StartEarnCard>
+              </div>
+            </section>
             <section className="bg-purple-500">Row 6</section>
           </div>
         </div>
