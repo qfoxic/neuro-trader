@@ -3,7 +3,7 @@ const StrongWhite = ({ children }: {
 }) => {
 
   return (
-    <strong className="text-white">{children}</strong>
+    <span className="text-white font-bold">{children}</span>
   );
 };
 

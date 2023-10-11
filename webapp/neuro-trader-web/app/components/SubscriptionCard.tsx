@@ -2,8 +2,8 @@ import Image from 'next/image';
 import RoundedButton from './RoundedButton';
 
 
-const SubscriptionCardMenuItem = ({ bottomBorder, imageSrc, size, children }: {
-  bottomBorder?: boolean, imageSrc: string, size: number, children: React.ReactNode
+const SubscriptionCardMenuItem = ({ bottomBorder, imageSrc, size, disabled, children }: {
+  bottomBorder?: boolean, imageSrc: string, size: number, disabled?: boolean, children: React.ReactNode
 }) => {
 
   return (
@@ -16,7 +16,7 @@ const SubscriptionCardMenuItem = ({ bottomBorder, imageSrc, size, children }: {
           height={size}
           alt="Loading..."></Image>
       </div>
-      <div className="pl-2">{children}</div>
+      <div className={`pl-2 ${disabled && "text-slate-400"}`}>{children}</div>
     </div>
   );
 };

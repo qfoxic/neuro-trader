@@ -3,7 +3,7 @@ const StrongBlue = ({ children }: {
 }) => {
 
   return (
-    <strong className="text-blue-700">{children}</strong>
+    <span className="text-blue-700 font-bold">{children}</span>
   );
 };
 

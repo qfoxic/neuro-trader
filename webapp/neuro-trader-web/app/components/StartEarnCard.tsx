@@ -25,7 +25,7 @@ const StartEarnCard = ({ stepNumber, imageSrc, children }: {
 }) => {
 
   return (
-    <div className="rounded rounded-tl-4xl bg-slate-300 px-4 py-3">
+    <div className="rounded rounded-tl-4xl bg-slate-300 px-4 py-3 w-[100%] md:w-[28%] m-3">
       <div className="flex justify-between">
         <div className="bg-blue-700 rounded-full p-2 ml-1 self-center">
           <Image
@@ -36,7 +36,7 @@ const StartEarnCard = ({ stepNumber, imageSrc, children }: {
             alt="...">
           </Image>
         </div>
-        <p className="text-7xl text-white"><strong>{stepNumber}</strong></p>
+        <p className="text-7xl text-white font-bold">{stepNumber}</p>
       </div>
       {children}
     </div>
