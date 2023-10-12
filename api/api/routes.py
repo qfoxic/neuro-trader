@@ -91,5 +91,11 @@ async def add_bot_transaction(userTransaction: UserTransactionForm):
         chain_type = userTransaction.chain_type,
         profit = userTransaction.profit
     )
+
+    if user.deposit_updated_at.month != datetime.datetime.now().month:
+        user.monthly_profit = 0
+
+    user.monthly_profit += userTransaction.profit
+    user.save()
     transaction.save()
     return "OK"
