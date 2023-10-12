@@ -213,7 +213,7 @@ export default function Home() {
                 </div>
               </div>
             </section>
-            <section className="flex-col items-center py-20">
+            <section className="flex-col items-center px-10 py-12 md:p-24">
               <SectionTitle>
                 <p className="font-medium text-2xl"><span className="font-bold">Ми на зв`язку</span></p>
               </SectionTitle>
@@ -225,14 +225,22 @@ export default function Home() {
           </div>
         </div>
       </main>
-      {
-        /*
-          <footer>
-            <p>&copy; 2023 Your Website Name. All Rights Reserved.</p>
-            <!-- You can include additional footer content or links here -->
-          </footer>
-        */
-      }
+      <footer className="bg-blue-950 flex flex-col items-center px-10 py-12 md:p-24">
+        <Image
+          src="/logo2.svg"
+          width="55"
+          height="20"
+          className="w-55 md:w-[80px] mb-4"
+          alt="Matcher footer logo">
+        </Image>
+        <Image
+          src="/title.svg"
+          width="100"
+          height="20"
+          className="w-100 md:w-[147px]"
+          alt="Matcher footer title">
+        </Image>
+      </footer>
     </>
   )
 }
