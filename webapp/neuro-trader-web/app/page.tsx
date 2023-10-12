@@ -153,7 +153,7 @@ export default function Home() {
                 </SubscriptionCard>
                 <SubscriptionCard
                   header={"Платна підписка"}
-                  footer={<><p><StrongBlue>10%</StrongBlue></p><p>з доходу за місяць</p></>}
+                  footer={<><p><StrongBlue>20%</StrongBlue></p><p>з доходу за місяць</p></>}
                 >
                   <SubscriptionCardMenuItem imageSrc="/check.png" size={12}>
                     <p>Період дії <StrongBlue>1 місяць</StrongBlue></p>
