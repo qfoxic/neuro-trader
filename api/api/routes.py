@@ -72,7 +72,7 @@ async def update_user_deposit(userDeposit: UserDepositForm):
         user.current_deposit = userDeposit.deposit
         user.save()
     elif user.deposit_updated_at.month != datetime.datetime.now().month:
-        user.monthly_profit = userDeposit.deposit - user.current_deposit
+        #user.monthly_profit = userDeposit.deposit - user.current_deposit
         user.current_deposit = userDeposit.deposit
         user.save()
     return "OK"
