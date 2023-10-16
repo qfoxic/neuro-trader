@@ -80,6 +80,9 @@ async def update_user_deposit(userDeposit: UserDepositForm):
 
 @router.post("/bots/transactions")
 async def add_bot_transaction(userTransaction: UserTransactionForm):
+    if userTransaction.profit == 0.0000000:
+        return "EMPTY"
+
     try:
         user = Users.from_id(userTransaction.token)
     except:
@@ -91,6 +94,9 @@ async def add_bot_transaction(userTransaction: UserTransactionForm):
         chain_type = userTransaction.chain_type,
         profit = userTransaction.profit
     )
+
+    if user.monthly_profit is None:
+        user.monthly_profit = 0
 
     if user.deposit_updated_at.month != datetime.datetime.now().month:
         user.monthly_profit = 0
