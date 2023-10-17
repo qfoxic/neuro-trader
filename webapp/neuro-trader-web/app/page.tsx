@@ -219,8 +219,9 @@ export default function Home({ searchParams }: any) {
                     </div>
                     <div className="flex">
                       <p className="flex flex-col text-sky-700">
-                        <Link href="https://my.esperio.org/agent_pp.html?agent_pp=27177553">esperio.org</Link>
-                        <Link href="https://my.teletrade-dj.com/agent_pp.html?agent_pp=24877377">teletrade.com.ua</Link>
+                        <p>вибирай надійних і перевірених брокерів</p>
+                        <Link className="font-bold" href="https://my.esperio.org/agent_pp.html?agent_pp=27177553">esperio.org</Link>
+                        <Link className="font-bold" href="https://my.teletrade-dj.com/agent_pp.html?agent_pp=24877377">teletrade.com.ua</Link>
                       </p>
 
                     </div>
