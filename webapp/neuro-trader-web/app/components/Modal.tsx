@@ -26,6 +26,7 @@ const Modal = ({ defaultTab, tabs }:
                   {
                     tabs.map(tab => (
                       <Tab
+                        key={ tab.title}
                         tab={tab}
                         setAсtiveTab={setAсtiveTab}
                         activeTab={activeTab}
