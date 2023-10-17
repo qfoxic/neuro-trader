@@ -218,14 +218,11 @@ export default function Home({ searchParams }: any) {
                       <span className="font-bold">Відкрити</span> і поповнити <span className="font-bold">рахунок</span> в <span className="font-bold">брокера</span>
                     </div>
                     <div className="flex">
-                      <Image
-                        className="object-contain"
-                        src="/info.png"
-                        width={15}
-                        height={15}
-                        alt="..."
-                      ></Image>
-                      <p className="pl-2 text-sky-700">Обирайте перевірених брокерів</p>
+                      <p className="flex flex-col text-sky-700">
+                        <Link href="https://my.esperio.org/agent_pp.html?agent_pp=27177553">esperio.org</Link>
+                        <Link href="https://my.teletrade-dj.com/agent_pp.html?agent_pp=24877377">teletrade.com.ua</Link>
+                      </p>
+
                     </div>
                   </StartEarnCard>
                   <StartEarnCard stepNumber="3." imageSrc="/development.png">
