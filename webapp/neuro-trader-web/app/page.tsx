@@ -7,11 +7,32 @@ import StrongBlue from './components/StrongBlue';
 import StrongWhite from './components/StrongWhite';
 import { SubscriptionCard, SubscriptionCardMenuItem } from './components/SubscriptionCard';
 import { StartEarnCard } from './components/StartEarnCard';
+import Modal from './components/Modal';
 
+export interface ITab {
+  title: string;
+  children: React.ReactNode;
+};
 
-export default function Home() {
+export default function Home({ searchParams }: any) {
+  const showRegisterModal = searchParams?.showRegisterModal;
+  const showLoginModal = searchParams?.showLoginModal;
+
+  const tabs: ITab[] = [
+    {
+      title: "Вхід",
+      children: <h1>Форма входу</h1>
+    },
+    {
+      title: "Реєстрація",
+      children: <h1>Форма реєстрації</h1>
+    }
+  ];
+
   return (
     <>
+      {showRegisterModal && <Modal defaultTab={tabs[1]} tabs={tabs} />}
+      {showLoginModal && <Modal defaultTab={tabs[0]} tabs={tabs} />}
       {
         /*
         <header>
@@ -48,7 +69,7 @@ export default function Home() {
                 </li>
                 <li className="text-stone-400 px-5">|</li>
                 <li className="text-stone-500">
-                  <Link className="flex items-center" href="/login">
+                  <Link className="flex items-center" href="/?showLoginModal=true">
                     <p className="pr-2">Увійти</p>
                     <Image
                       src="/login.png"
@@ -64,9 +85,9 @@ export default function Home() {
                 <p>Довір це штучному інтелекту</p>
                 <p>і насолоджуйся прибутком</p>
               </div>
-              <div>
+              <Link href="/?showRegisterModal=true">
                 <RoundedButton text="ПОЧАТИ" />
-              </div>
+              </Link>
             </section>
             <section className="px-10 py-12 md:p-24 container mx-auto lg:px-40 xl:px-48">
               <SectionTitle>
