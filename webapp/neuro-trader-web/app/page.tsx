@@ -8,6 +8,8 @@ import StrongWhite from './components/StrongWhite';
 import { SubscriptionCard, SubscriptionCardMenuItem } from './components/SubscriptionCard';
 import { StartEarnCard } from './components/StartEarnCard';
 import Modal from './components/Modal';
+import RegisterForm from './components/RegisterForm';
+import LoginForm from './components/LoginForm';
 
 export interface ITab {
   title: string;
@@ -21,11 +23,11 @@ export default function Home({ searchParams }: any) {
   const tabs: ITab[] = [
     {
       title: "Вхід",
-      children: <h1>Форма входу</h1>
+      children: <LoginForm />
     },
     {
       title: "Реєстрація",
-      children: <h1>Форма реєстрації</h1>
+      children: <RegisterForm />
     }
   ];
 
@@ -219,7 +221,7 @@ export default function Home({ searchParams }: any) {
                     </div>
                     <div className="flex">
                       <p className="flex flex-col text-sky-700">
-                        <p>вибирай надійних і перевірених брокерів</p>
+                        <span>вибирай надійних і перевірених брокерів</span>
                         <Link className="font-bold" href="https://my.esperio.org/agent_pp.html?agent_pp=27177553">esperio.org</Link>
                         <Link className="font-bold" href="https://my.teletrade-dj.com/agent_pp.html?agent_pp=24877377">teletrade.com.ua</Link>
                       </p>

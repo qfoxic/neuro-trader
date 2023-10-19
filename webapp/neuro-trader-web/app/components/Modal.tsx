@@ -35,7 +35,7 @@ const Modal = ({ defaultTab, tabs }:
                   }
                 </ul>
               </div>
-              <div className="py-4">
+              <div className="py-6">
                 {activeTab.children}
               </div>
             </div>

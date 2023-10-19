@@ -3,9 +3,16 @@
 import { useState } from "react";
 import Image from 'next/image';
 
+interface IProps {
+  text: string,
+  buttonColor?: string,
+  textColor?: string,
+  border?: string,
+  icon?: string
+  fullWidth?: string
+}
 
-const RoundedButton = ({ text, buttonColor="bg-blue-500", textColor="text-white", border, icon }:
-        { text: string, buttonColor?: string, textColor?: string, border?: string, icon?: string }) => {
+const RoundedButton = ({ text, buttonColor = "bg-blue-500", textColor = "text-white", border, icon, fullWidth }: IProps) => {
   const [clicked, setClicked] = useState(false);
 
   const handleClick = () => {
@@ -14,7 +21,7 @@ const RoundedButton = ({ text, buttonColor="bg-blue-500", textColor="text-white"
   return (
     <button
       type="submit"
-      className={`flex items-center gap-3 px-12 py-2 ${buttonColor} ${textColor} ${border} rounded-full hover:ring-2`}
+      className={`flex justify-center gap-3 px-12 py-2 ${buttonColor} ${textColor} ${border} ${fullWidth} rounded-full hover:ring-2`}
       onClick={handleClick}
     >
       {
