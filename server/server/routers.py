@@ -1,11 +1,11 @@
-from enum import StrEnum
+from enum import Enum
 
 from fastapi import APIRouter, Query
-from corelib.utils import cos_similarity_score, make_sample_from_array
-from ..utils import load_trade_models
+from mcorelib.utils import make_sample_from_array
+from .utils import load_trade_models, cos_similarity_score
 
 
-class OperationType(StrEnum):
+class OperationType(Enum):
     buy = "buy"
     sell = "sell"
 
