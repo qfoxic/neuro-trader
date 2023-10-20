@@ -1,6 +1,6 @@
 from collections import namedtuple
 from dataclasses import dataclass, field
-from itertools import pairwise
+from itertools import tee
 
 CurrencyData = namedtuple('CurrencyData', ['group', 'data', 'currency', 'symbol_digits'])
 CurrencyProcessed = namedtuple('CurrencyProcessed', ['group', 'currency', 'metrics'])
@@ -8,14 +8,21 @@ Reply = namedtuple('Reply', ['currency', 'digits', 'rates'])
 Command = namedtuple('Command', ['tab_id', 'command', 'currencies'])
 
 
+def pairwise(iterable):
+    """s -> (s0,s1), (s1,s2), (s2, s3), ..."""
+    a, b = tee(iterable)
+    next(b, None)
+    return zip(a, b)
+
+
 @dataclass
 class Sample:
     currency: str
     sample_type: str
-    from_date: int | None = None
-    to_date: int | None = None
-    max_price: float | None = None
-    min_price: float | None  = None
+    from_date: int = None
+    to_date: int = None
+    max_price: float = None
+    min_price: float = None
     data: list = field(default_factory=list)
 
     def __len__(self):

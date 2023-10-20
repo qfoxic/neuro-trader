@@ -1,7 +1,7 @@
 import os
 import time
 from .datatypes import Sample, Currency
-from sklearn.metrics.pairwise import cosine_similarity
+
 
 def normalize_by_min_max(sample):
     return [get_price_percentage(row.close, sample.max_price, sample.min_price) for row in sample.data]
@@ -63,34 +63,22 @@ def make_sample_from_array(prices):
     return sample
 
 
-def cos_similarity(sample, model):
-    data = sample.data
-    wnd = len(model)
-    for ind, val in enumerate(data):
-        chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
-        next_candles = data[ind+wnd:ind+wnd+30]
-        if len(chunk) != len(model):
-            break
-        yield (cosine_similarity([chunk], [model])[0][0], next_candles)
+# def cos_similarity(sample, model):
+#     data = sample.data
+#     wnd = len(model)
+#     for ind, val in enumerate(data):
+#         chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
+#         next_candles = data[ind+wnd:ind+wnd+30]
+#         if len(chunk) != len(model):
+#             break
+#         yield (cosine_similarity(chunk, model), next_candles)
 
 
-def cos_similarity1(sample, model):
-    data = sample.data
-    wnd = len(model)
-    for ind, val in enumerate(data):
-        chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
-        if len(chunk) != len(model):
-            break
-        yield (val.time, cosine_similarity([chunk], [model])[0][0])
-
-
-def cos_similarity_score(sample, model):
-    pattern = normalize_by_min_max(sample)
-    model_length = len(model)
-    pattern_length = len(pattern)
-    if pattern_length > model_length:
-        # If pattern is larger than take last portion of a pattern by model length and compare it
-        return cosine_similarity([pattern[-model_length:]], [model])[0][0]
-    if pattern_length < model_length:
-        return 0.0
-    return cosine_similarity([pattern], [model])[0][0]
+# def cos_similarity1(sample, model):
+#     data = sample.data
+#     wnd = len(model)
+#     for ind, val in enumerate(data):
+#         chunk = normalize_by_min_max(make_sample(data[ind:ind+wnd]))
+#         if len(chunk) != len(model):
+#             break
+#         yield (val.time, cosine_similarity(chunk, model))

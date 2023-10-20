@@ -2,8 +2,8 @@ import os
 import shutil
 import time
 
-from corelib.datatypes import Reply, TradeInfo
-from corelib.utils import data
+from mcorelib.datatypes import Reply, TradeInfo
+from mcorelib.utils import data
 
 
 class Mt5Client:
