@@ -10,6 +10,8 @@ import { StartEarnCard } from './components/StartEarnCard';
 import Modal from './components/Modal';
 import RegisterForm from './components/RegisterForm';
 import LoginForm from './components/LoginForm';
+import "react-toastify/dist/ReactToastify.css";
+import { ToastContainer } from "react-toastify";
 
 export interface ITab {
   title: string;
@@ -33,6 +35,7 @@ export default function Home({ searchParams }: any) {
 
   return (
     <>
+      <ToastContainer />
       {showRegisterModal && <Modal defaultTab={tabs[1]} tabs={tabs} />}
       {showLoginModal && <Modal defaultTab={tabs[0]} tabs={tabs} />}
       {
