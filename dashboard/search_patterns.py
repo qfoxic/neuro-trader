@@ -2,8 +2,6 @@ import sys
 import os
 from optparse import OptionParser
 
-from corelib.utils import normalize_by_min_max, cos_similarity, data, make_sample, get_price_percentage
-
 
 def pips2price(pips):
     # For most currencies

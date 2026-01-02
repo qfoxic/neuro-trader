@@ -6,11 +6,11 @@ authors = ["Volodymyr Paslavskyy <vpaslavskyy@elitex.systems>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
-scikit-learn = "^1.1.3"
-pyqt6 = "^6.4.0"
-matplotlib = "^3.6.2"
-corelib = {path = "../corelib/dist/corelib-0.1.0.tar.gz"}
+python = "^3.12"
+trader-corelib = {path = "../trader-corelib/dist/trader_corelib-0.1.4.tar.gz"}
+tensorflow = "2.16.2"
+scikit-learn = "^1.5.1"
+pandas = "^2.2.2"
 
 
 [build-system]

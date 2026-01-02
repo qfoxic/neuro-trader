@@ -1,0 +1,7 @@
+{
+    "python.analysis.extraPaths": [
+        "./trader-corelib",
+        "~/Library/Caches/pypoetry/virtualenvs/dashboard-jhvLy3Sd-py3.12/"
+    ],
+    "python.analysis.typeCheckingMode": "off"
+}

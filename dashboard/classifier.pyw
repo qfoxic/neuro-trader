@@ -14,8 +14,8 @@ from matplotlib.patches import Rectangle
 
 from dashboard.config import ConfigReader
 from dashboard.constants import CONFIG_FILENAME, EVALUATION_RANGE, VIEW_RANGE
-from corelib.mt5client import Mt5Client
-from corelib.utils import normalize_by_min_max, cos_similarity1
+from trader_corelib.mt5client import Mt5Client
+from trader_corelib.utils import normalize_by_min_max, cos_similarity1
 
 
 class MplCanvas(FigureCanvasQTAgg):
@@ -292,27 +292,27 @@ class ApplicationWindow(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def onFindPositionsButtonClicked(self):
-        self.matched_figures = []
-        self.nextFigureButton.setDisabled(True)
-        self.prevFigureButton.setDisabled(True)
+        # self.matched_figures = []
+        # self.nextFigureButton.setDisabled(True)
+        # self.prevFigureButton.setDisabled(True)
 
-        currency = self.currencyWidget.currentText()
-        total_samples = client.data(currency, f'data_{currency.upper()}')
-        debug_matched_figures = []
-        model = normalize_by_min_max(
-            client.data(currency, f'classified_figure_{currency.upper()}.txt').mirror()
-            if self.mirroredCheckBox.isChecked() else
-            client.data(currency, f'classified_figure_{currency.upper()}.txt')
-        )
-        cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
+        # currency = self.currencyWidget.currentText()
+        # total_samples = client.data(currency, f'data_{currency.upper()}')
+        # debug_matched_figures = []
+        # model = normalize_by_min_max(
+        #     client.data(currency, f'classified_figure_{currency.upper()}.txt').mirror()
+        #     if self.mirroredCheckBox.isChecked() else
+        #     client.data(currency, f'classified_figure_{currency.upper()}.txt')
+        # )
+        # cos_sim_stream = enumerate(cos_similarity1(total_samples, model))
 
-        for ind, (date, sim) in cos_sim_stream:
-            if sim > float(self.preciseLineEdit.text()):
-                self.matched_figures.append([ind, sim])
-                debug_matched_figures.append([date, sim])
-        self.nextFigureButton.setDisabled(False)
+        # for ind, (date, sim) in cos_sim_stream:
+        #     if sim > float(self.preciseLineEdit.text()):
+        #         self.matched_figures.append([ind, sim])
+        #         debug_matched_figures.append([date, sim])
+        # self.nextFigureButton.setDisabled(False)
 
-        print(",".join([str(i[0]) for i in debug_matched_figures]))
+        # print(",".join([str(i[0]) for i in debug_matched_figures]))
         if not self.sc.ochl:
             self.loadData()
 

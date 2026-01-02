@@ -1,7 +1,7 @@
 import sys
 from optparse import OptionParser
 
-from corelib.utils import normalize_by_min_max, cos_similarity1, data, mirror_normalized_array
+from trader_corelib.utils import normalize_by_min_max, cos_similarity1, data, mirror_normalized_array
 
 
 def main(currency):

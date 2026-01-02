@@ -1,8 +1,8 @@
 import os
 from optparse import OptionParser
 
-from corelib.utils import normalize_by_min_max, cos_similarity1, data, mirror_normalized_array
-from corelib.mt5client import Mt5Client
+from trader_corelib.utils import normalize_by_min_max, cos_similarity1, data, mirror_normalized_array
+from trader_corelib.mt5client import Mt5Client
 from dashboard.config import ConfigReader
 from dashboard.constants import CONFIG_FILENAME
 
